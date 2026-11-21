@@ -54,7 +54,12 @@ Sketch style: outlines of tiles, buttons and icons are hand-drawn SVG paths (dou
 - Tile boxes on the 1360 × 740 stage, as x, y, width, height: title 7, 7, 683, 353; top car tile (`.t-carA`) 576, 7, 777, 478; bottom car tile (`.t-carB`) 7, 374, 1195, 359; next meet 1039, 431, 314, 302.
 - Text inside tiles is sized in `cqw`. The page root is a container named `ku`. At 1100 px and below the tiles stack as rounded cards; 640 px and below is the phone layout.
 - Title tile: h1 "Khalifa University's car club", a Caveat line "every car welcome" with a drawn underline, the badge, one paragraph, and the buttons "Join the club" and "See the next meet".
-- Car tiles: each shows one whole sketch (`object-fit: contain`), sitting on the tile floor. Above 1100 px the boxes are `.ink-a` 2%, 3%, 96% × 93% and `.ink-b` 3%, 4.5%, 82% × 91%. When stacked, the tiles keep aspect ratios of 2.14 and 2.55. There are no labels on the cars, and alt text never names a make or model.
+- Car tiles: `.ink-a` and `.ink-b` cover the whole tile. Each drawing gets its own box per tile and per layout in `/* section: hero car fit */`, matched by `data-car` (the two starting `<img>`s carry it too). The boxes in that block come from a fitting pass:
+  - Every inked line stays inside the tile's real outline, with a margin of 20 stage px on desktop and 2.4% of the width when stacked.
+  - The cars share a floor line: 93% of the height in the bottom tile, 83.5% in the top tile, 92% when stacked.
+  - In the bottom tile each car is centred near 44% of the width. The owner chose this balanced fit over bigger, left-leaning cars.
+  - A car added to a pool needs its own boxes there, or it fills the whole tile.
+- When stacked, the tiles keep aspect ratios of 2.14 and 2.55. There are no labels on the cars, and alt text never names a make or model.
 - Rotation (`/* section: hero cars */`): the tiles start on the Supra and the Mustang. Every 5 s one tile wipes its car away and scribbles another in, so each tile changes every 10 s.
   - Top tile pool: supra, r33, r8, p918, mustang, senna, p993.
   - Bottom tile pool: ferrari, p992, p930, p993, senna, p964, p918, mustang.
