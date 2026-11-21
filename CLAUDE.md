@@ -48,6 +48,12 @@ Type: Barlow Condensed 600/700 for headings and buttons, Barlow 400/500/600 for 
 
 Sketch style: outlines of tiles, buttons and icons are hand-drawn SVG paths (doubled, slightly jittered strokes). They draw on at load with `pathLength="1"` and a `stroke-dasharray` animation (`kuDraw`). Paper tiles carry a faint dot grid.
 
+Outline fade (`/* section: outline fade */`, the owner chose it over a glass look): the section outlines keep their ink colour for the first 45% of their length, then fade into gold towards the lower right.
+- Navy outlines on cream use `#kuFadeInk`. Cream outlines on navy use `#kuFadeCream`. Both gradients are in the `ku-defs` svg and size to each path's own box.
+- In the stacked hero the tiles have real borders, so the fade there is a `border-box` gradient.
+- The gold "Join the club" outlines stay plain gold.
+- A gradient sized to the path's box doesn't render on a perfectly straight horizontal or vertical path. Keep a little jitter in any new outline that gets the fade.
+
 ### Hero (puzzle bento)
 
 - One stage with a fixed aspect ratio of 1360 / 740. Four interlocking tiles are absolutely placed in percentages and cut with `clip-path: url(#kuClip…)` using `clipPathUnits="objectBoundingBox"`.

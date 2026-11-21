@@ -717,10 +717,28 @@ a{color:inherit}
 [data-motion="false"] .btn-scrib path,[data-motion="false"] .btn-navy:hover .btn-scrib path{transition:none}
 @media (prefers-reduced-motion:reduce){.btn-scrib path,.btn-navy:hover .btn-scrib path{transition:none}}
 </style>
+<style>
+/* section: outline fade */
+/* The hand-drawn outlines keep their ink colour for most of their length, then fade into gold towards the lower right.
+   The gradients (#kuFadeInk navy to gold, #kuFadeCream cream to gold) are in the ku-defs svg and size to each path's own box. */
+.ku-sketch path,
+.ku-menu .sk path,.ku-nav .btn-navy .sk path,.ku-mn .sk path,
+.ku-explore .sk path,
+.ku-meet .mt-fr path{stroke:url(#kuFadeInk)}
+.ku-people .pp-f path,
+.ku-film .card .frame path,.ku-film .arrow .sk path,.ku-film .film-over .sk path,
+.btn-ghost .sk path{stroke:url(#kuFadeCream)}
+/* stacked hero: the tiles use real borders there, so the fade is a border-box gradient */
+@container ku (max-width:1100px){
+.ku .tile{border-color:transparent}
+.ku .t-carA.t-ink,.ku .t-carB.t-ink{background:radial-gradient(rgba(20,33,61,.13) 1px,transparent 1.4px) padding-box,linear-gradient(var(--ivory),var(--ivory)) padding-box,linear-gradient(135deg,var(--navy) 45%,var(--gold)) border-box;background-size:22px 22px,auto,auto}
+.ku .t-title,.ku .t-meet{background:linear-gradient(var(--navy),var(--navy)) padding-box,linear-gradient(135deg,var(--navy) 45%,var(--gold)) border-box}
+}
+</style>
 </head>
 <body>
 <div class="ku" data-motion="true" id="kuRoot">
-<svg class="ku-defs" width="0" height="0" aria-hidden="true" focusable="false"><defs><clipPath id="kuClipTitle" clipPathUnits="objectBoundingBox"><path d="M0.0381 0.0 L0.9619 0.0 C0.9829 0.0 1.0 0.0331 1.0 0.0737 L1.0 0.5037 C1.0 0.5175 0.9965 0.5376 0.9922 0.5485 L0.8248 0.9711 C0.8185 0.987 0.8049 1.0 0.7946 1.0 L0.0381 1.0 C0.0171 1.0 0.0 0.9669 0.0 0.9263 L0.0 0.0737 C0.0 0.0331 0.0171 0.0 0.0381 0.0 Z"></path></clipPath><clipPath id="kuClipA" clipPathUnits="objectBoundingBox"><path d="M0.1981 0.0 L0.9665 0.0 C0.9849 0.0 1.0 0.0245 1.0 0.0544 L1.0 0.8211 C1.0 0.8395 0.9917 0.8614 0.9815 0.8697 L0.8456 0.9801 C0.8321 0.991 0.8135 0.9842 0.8042 0.9648 L0.7789 0.9119 C0.7734 0.9003 0.7615 0.8909 0.7525 0.8909 L0.1414 0.8909 C0.1358 0.8909 0.1275 0.8868 0.1229 0.8818 L0.0298 0.7815 C0.0134 0.7638 0.0098 0.7285 0.0218 0.7031 L0.1577 0.4149 C0.1615 0.4068 0.1646 0.3919 0.1646 0.3818 L0.1646 0.0544 C0.1646 0.0245 0.1797 0.0 0.1981 0.0 Z"></path></clipPath><clipPath id="kuClipB" clipPathUnits="objectBoundingBox"><path d="M0.0218 0.0 L0.4595 0.0 C0.4631 0.0 0.4685 0.0054 0.4715 0.0121 L0.5526 0.1913 C0.5556 0.1979 0.561 0.2033 0.5646 0.2033 L0.9597 0.2033 C0.9656 0.2033 0.9733 0.2159 0.9769 0.2313 L0.9867 0.273 C0.994 0.3044 0.992 0.3487 0.9822 0.3715 L0.8949 0.5752 C0.8915 0.5831 0.8878 0.6004 0.8866 0.6137 L0.8564 0.9484 C0.8538 0.9768 0.8445 1.0 0.8356 1.0 L0.0218 1.0 C0.0098 1.0 0.0 0.9674 0.0 0.9276 L0.0 0.0724 C0.0 0.0326 0.0098 0.0 0.0218 0.0 Z"></path></clipPath><clipPath id="kuClipMeet" clipPathUnits="objectBoundingBox"><path d="M0.5669 0.2251 L0.8892 0.0576 C0.9502 0.0259 1.0 0.0579 1.0 0.1287 L1.0 0.9204 C1.0 0.9642 0.9656 1.0 0.9235 1.0 L0.1029 1.0 C0.0463 1.0 0.0133 0.9539 0.0296 0.8976 L0.125 0.5668 C0.1292 0.5523 0.1424 0.5332 0.1544 0.5245 L0.5572 0.2311 C0.5597 0.2293 0.5641 0.2266 0.5669 0.2251 Z"></path></clipPath></defs></svg>
+<svg class="ku-defs" width="0" height="0" aria-hidden="true" focusable="false"><defs><linearGradient id="kuFadeInk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14213D"/><stop offset=".45" stop-color="#14213D"/><stop offset="1" stop-color="#C6A75E"/></linearGradient><linearGradient id="kuFadeCream" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3EBD8"/><stop offset=".45" stop-color="#F3EBD8"/><stop offset="1" stop-color="#C6A75E"/></linearGradient></defs><defs><clipPath id="kuClipTitle" clipPathUnits="objectBoundingBox"><path d="M0.0381 0.0 L0.9619 0.0 C0.9829 0.0 1.0 0.0331 1.0 0.0737 L1.0 0.5037 C1.0 0.5175 0.9965 0.5376 0.9922 0.5485 L0.8248 0.9711 C0.8185 0.987 0.8049 1.0 0.7946 1.0 L0.0381 1.0 C0.0171 1.0 0.0 0.9669 0.0 0.9263 L0.0 0.0737 C0.0 0.0331 0.0171 0.0 0.0381 0.0 Z"></path></clipPath><clipPath id="kuClipA" clipPathUnits="objectBoundingBox"><path d="M0.1981 0.0 L0.9665 0.0 C0.9849 0.0 1.0 0.0245 1.0 0.0544 L1.0 0.8211 C1.0 0.8395 0.9917 0.8614 0.9815 0.8697 L0.8456 0.9801 C0.8321 0.991 0.8135 0.9842 0.8042 0.9648 L0.7789 0.9119 C0.7734 0.9003 0.7615 0.8909 0.7525 0.8909 L0.1414 0.8909 C0.1358 0.8909 0.1275 0.8868 0.1229 0.8818 L0.0298 0.7815 C0.0134 0.7638 0.0098 0.7285 0.0218 0.7031 L0.1577 0.4149 C0.1615 0.4068 0.1646 0.3919 0.1646 0.3818 L0.1646 0.0544 C0.1646 0.0245 0.1797 0.0 0.1981 0.0 Z"></path></clipPath><clipPath id="kuClipB" clipPathUnits="objectBoundingBox"><path d="M0.0218 0.0 L0.4595 0.0 C0.4631 0.0 0.4685 0.0054 0.4715 0.0121 L0.5526 0.1913 C0.5556 0.1979 0.561 0.2033 0.5646 0.2033 L0.9597 0.2033 C0.9656 0.2033 0.9733 0.2159 0.9769 0.2313 L0.9867 0.273 C0.994 0.3044 0.992 0.3487 0.9822 0.3715 L0.8949 0.5752 C0.8915 0.5831 0.8878 0.6004 0.8866 0.6137 L0.8564 0.9484 C0.8538 0.9768 0.8445 1.0 0.8356 1.0 L0.0218 1.0 C0.0098 1.0 0.0 0.9674 0.0 0.9276 L0.0 0.0724 C0.0 0.0326 0.0098 0.0 0.0218 0.0 Z"></path></clipPath><clipPath id="kuClipMeet" clipPathUnits="objectBoundingBox"><path d="M0.5669 0.2251 L0.8892 0.0576 C0.9502 0.0259 1.0 0.0579 1.0 0.1287 L1.0 0.9204 C1.0 0.9642 0.9656 1.0 0.9235 1.0 L0.1029 1.0 C0.0463 1.0 0.0133 0.9539 0.0296 0.8976 L0.125 0.5668 C0.1292 0.5523 0.1424 0.5332 0.1544 0.5245 L0.5572 0.2311 C0.5597 0.2293 0.5641 0.2266 0.5669 0.2251 Z"></path></clipPath></defs></svg>
 <header class="ku-nav">
 <a class="ku-logo" href="#top"><img src="assets/wordmark.png" alt="KU Car Club"></a>
 <nav class="ku-menu" aria-label="Main">
