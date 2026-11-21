@@ -434,6 +434,16 @@ a{color:inherit}
 .ku-explore .xp-d-place{font-size:26px;padding-top:14px}
 .ku-explore .xp-d-cap{font-size:16px;margin-top:12px}
 }
+.ku-explore .xp-globe{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+.ku-explore .xp-intro .xp-coast,.ku-explore .xp-intro .xp-label,.ku-explore .xp-intro .xp-pin,.ku-explore .xp-intro .xp-pin .xp-pin-name{visibility:hidden}
+.ku-explore .xp-ku{position:absolute;left:0;top:0;z-index:6;font-size:90px;pointer-events:none;visibility:hidden}
+.ku-explore .xp-ku-pin{position:absolute;left:-.5em;top:-1.3em;width:1em;height:1.3em;transform-origin:50% 100%}
+.ku-explore .xp-ku-pin svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ku-explore .xp-ku-pin path{fill:var(--cream);stroke:var(--navy);stroke-width:2.5;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.ku-explore .xp-ku-pin img{position:absolute;left:.1em;top:.1em;width:.8em;height:.8em;border-radius:50%}
+.ku-explore .xp-ku-shadow{position:absolute;left:-.24em;top:-.08em;width:.48em;height:.16em;border-radius:50%;background:rgba(20,33,61,.24)}
+.ku-explore .xp-ku-ring{position:absolute;left:-.44em;top:-.15em;width:.88em;height:.3em;border:2px solid var(--navy);border-radius:50%;opacity:0}
+@container ku (max-width:640px){.ku-explore .xp-ku{font-size:62px}}
 </style>
 <style>
 /* section: people */
@@ -1061,6 +1071,145 @@ if(!panel.hasAttribute('hidden')&&!root.contains(e.target))setOpen(false);
     pick(Number(k));
   });
   inner.addEventListener('animationend', function () { inner.classList.remove('is-swap'); });
+})();
+/* section: explore intro */
+(function(){
+  // The map opens as a globe: it turns to the UAE, zooms in on Abu Dhabi, drops the club badge on
+  // KU's main campus, then pulls back out to the seven-emirate map, which takes over from the drawing.
+  var R=document.querySelector('.ku-explore'), map=R&&R.querySelector('[data-explore-map]'), root=document.getElementById('kuRoot');
+  var coast=map&&map.querySelector('.xp-land'), cv=document.createElement('canvas'), g=cv.getContext&&cv.getContext('2d');
+  if(!coast||!g||!window.fetch||!window.requestAnimationFrame||!('IntersectionObserver' in window)||!map.animate) return;
+  if((window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||(root&&root.getAttribute('data-motion')==='false')) return;
+
+  // The flat map is a plain longitude/latitude grid over these spans (its seven pins sit within 0.3% of their places).
+  var LON0=51.565, LONS=5.408, LAT0=26.477, LATS=4.45, KU=[54.3949,24.4474], D=Math.PI/180;
+  var C0=[-25,12], CU=[LON0+LONS/2, LAT0-LATS/2];
+  // timeline, ms: turn the globe, zoom in, drop the pin, hold, pull back
+  var TURN=2000, ZOOM0=1700, ZOOM1=4300, DROP=4300, PULL=6300, PULLD=1200, END=PULL+PULLD;
+  var NAVY=(getComputedStyle(R).getPropertyValue('--navy')||'').trim()||'#14213D';
+  var land=null, uae, grid=[], cam, W=0, H=0, dpr=1, t=0, last=0, raf=0, played=false, dropped=false, done=false;
+
+  function clamp(x){ return x<0?0:x>1?1:x; }
+  function ease(x){ return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2; }
+  function smooth(x){ return x*x*(3-2*x); }
+  function ring(a, open){
+    var n=a.length/2, r={n:n, open:open, l:new Float64Array(n), c:new Float64Array(n), s:new Float64Array(n), lo:new Float64Array(n), la:new Float64Array(n)};
+    for(var i=0;i<n;i++){ var lo=a[2*i], la=a[2*i+1]; r.lo[i]=lo; r.la[i]=la; r.l[i]=lo*D; r.c[i]=Math.cos(la*D); r.s[i]=Math.sin(la*D); }
+    return r;
+  }
+  // the page's own UAE outline, turned back into longitude/latitude
+  uae=coast.getAttribute('d').split('M').filter(Boolean).map(function(sp){
+    var n=sp.match(/-?[\d.]+/g).map(Number), a=[];
+    for(var i=0;i+1<n.length;i+=2) a.push(LON0+n[i]/600*LONS, LAT0-n[i+1]/430*LATS);
+    return ring(a,false);
+  });
+  for(var lo=-180;lo<180;lo+=20){ var m=[]; for(var la=-80;la<=80;la+=4) m.push(lo,la); grid.push(ring(m,true)); }
+  for(var la2=-60;la2<=60;la2+=20){ var q=[]; for(var lo2=-180;lo2<=180;lo2+=4) q.push(lo2,la2); grid.push(ring(q,true)); }
+
+  // orthographic globe; with flat>0 it eases into the flat map's own grid so the hand-over is exact
+  function proj(lon, lat, cl, sl, cosl, sinl, out){
+    var dl=lon-cam.l, cd=Math.cos(dl), x=cosl*Math.sin(dl), y=cam.c*sinl-cam.s*cosl*cd, z=cam.s*sinl+cam.c*cosl*cd;
+    out.v=z>=0;
+    if(!out.v){ var k=Math.sqrt(x*x+y*y)||1; x/=k; y/=k; }
+    out.x=W/2+cam.r*x; out.y=H/2-cam.r*y;
+    if(cam.f){ out.x+=(W*(cl-LON0)/LONS-out.x)*cam.f; out.y+=(H*(LAT0-sl)/LATS-out.y)*cam.f; }
+  }
+  var P={};
+  function trace(r){
+    var pen=false;
+    for(var i=0;i<r.n;i++){
+      proj(r.l[i], 0, r.lo[i], r.la[i], r.c[i], r.s[i], P);
+      if(r.open&&!P.v){ pen=false; continue; }
+      if(pen) g.lineTo(P.x,P.y); else { g.moveTo(P.x,P.y); pen=true; }
+    }
+    if(!r.open) g.closePath();
+  }
+
+  var ku=document.createElement('div'), pin, shadow, splash;
+  ku.className='xp-ku'; ku.setAttribute('aria-hidden','true');
+  ku.innerHTML='<span class="xp-ku-ring"></span><span class="xp-ku-shadow"></span><span class="xp-ku-pin"><svg viewBox="0 0 60 78" focusable="false"><path d="M30 3C45 3 57 15 57 30C57 46 41 58 30 75C19 58 3 46 3 30C3 15 15 3 30 3Z"></path></svg><img src="assets/badge.png" alt="" width="72" height="72"></span>';
+  splash=ku.firstChild; shadow=splash.nextSibling; pin=shadow.nextSibling;
+
+  // the badge falls onto campus, squashes, and settles with two small bounces
+  function drop(){
+    var fall='cubic-bezier(.55,0,1,.45)', rise='cubic-bezier(0,.55,.45,1)', o={duration:950,fill:'backwards'};
+    ku.style.visibility='visible';
+    pin.animate([{transform:'translateY(-160px)',easing:fall},{transform:'translateY(0) scale(1.12,.86)',offset:.5,easing:rise},{transform:'translateY(-30px) scale(.97,1.03)',offset:.68,easing:fall},{transform:'translateY(0) scale(1.05,.94)',offset:.82,easing:rise},{transform:'translateY(-8px)',offset:.91,easing:fall},{transform:'none'}],o);
+    pin.animate([{opacity:0},{opacity:1}],{duration:140,fill:'backwards'});
+    shadow.animate([{transform:'scale(.3)',opacity:.2,easing:fall},{transform:'scale(1.12)',opacity:1,offset:.5,easing:rise},{transform:'scale(.75)',opacity:.7,offset:.68,easing:fall},{transform:'scale(1.05)',opacity:1,offset:.82,easing:rise},{transform:'scale(.95)',opacity:.9,offset:.91,easing:fall},{transform:'none',opacity:1}],o);
+    splash.animate([{transform:'scale(.3)',opacity:.7},{transform:'scale(1.7)',opacity:0}],{duration:650,delay:470,easing:'cubic-bezier(.23,1,.32,1)'});
+  }
+
+  function draw(t){
+    var w=map.clientWidth, h=map.clientHeight, d=window.devicePixelRatio||1;
+    if(w!==W||h!==H||d!==dpr){ W=w; H=h; dpr=d; cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
+    var rG=0.42*Math.min(W,H), rU=H/(LATS*D), rA=rU*3.2, CA=[KU[0], KU[1]+34/(rA*D)];
+    var a=ease(clamp(t/TURN)), lon=C0[0]+(CU[0]-C0[0])*a, lat=C0[1]+(CU[1]-C0[1])*a, r=rG, f=0, A=smooth(clamp(t/700));
+    r*=0.9+0.1*A;
+    if(t>ZOOM0) r=rG*Math.pow(rA/rG, ease(clamp((t-ZOOM0)/(ZOOM1-ZOOM0))));
+    if(t>PULL){ var p=ease(clamp((t-PULL)/PULLD)); r=rA*Math.pow(rU/rA,p); f=smooth(clamp((p-.55)/.45)); }
+    var wk=clamp(Math.log(r/rU)/Math.log(rA/rU)); lon+=(CA[0]-CU[0])*wk; lat+=(CA[1]-CU[1])*wk;
+    cam={l:lon*D, c:Math.cos(lat*D), s:Math.sin(lat*D), r:r, f:f};
+
+    var z=r/rU, limb=1-smooth(clamp((z-.06)/.14)), lines=.16*(1-smooth(clamp((z-.05)/.1))), mix=smooth(clamp((z-.28)/.2));
+    g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+    g.lineJoin='round'; g.lineCap='round'; g.strokeStyle=NAVY;
+    if(limb>0){ g.globalAlpha=A*limb; g.beginPath(); g.arc(W/2,H/2,r,0,2*Math.PI); g.fillStyle='rgba(20,33,61,.035)'; g.fill(); }
+    if(lines>0){ g.globalAlpha=A*lines; g.lineWidth=.8; g.beginPath(); grid.forEach(trace); g.stroke(); }
+    g.fillStyle='rgba(20,33,61,.06)';
+    if(land&&mix<1){ g.globalAlpha=A*(1-mix); g.lineWidth=1.3; g.beginPath(); land.forEach(trace); g.fill(); g.stroke(); }
+    if(mix>0){ g.globalAlpha=A*mix; g.fillStyle='rgba(20,33,61,.05)'; g.lineWidth=2; g.beginPath(); uae.forEach(trace); g.fill(); g.stroke(); }
+    if(limb>0){ g.globalAlpha=A*limb; g.lineWidth=2; g.beginPath(); g.arc(W/2,H/2,r,0,2*Math.PI); g.stroke(); g.globalAlpha=A*limb*.45; g.lineWidth=1.2; g.beginPath(); g.arc(W/2+1.2,H/2-.8,r+1.6,0,2*Math.PI); g.stroke(); }
+
+    if(t>=DROP){
+      if(!dropped){ dropped=true; drop(); }
+      proj(KU[0]*D, 0, KU[0], KU[1], Math.cos(KU[1]*D), Math.sin(KU[1]*D), P);
+      ku.style.transform='translate('+P.x.toFixed(1)+'px,'+P.y.toFixed(1)+'px)';
+      ku.style.opacity=String(1-clamp((t-PULL)/500));
+    }
+  }
+
+  function step(now){
+    t+=Math.min(50, now-last); last=now;
+    if(t>=END){ draw(END); finish(); return; }
+    draw(t); raf=requestAnimationFrame(step);
+  }
+  function start(){
+    if(played||done) return; played=true;
+    cv.className='xp-globe'; cv.setAttribute('aria-hidden','true');
+    map.appendChild(cv); map.appendChild(ku);
+    last=performance.now(); draw(0); raf=requestAnimationFrame(step);
+  }
+  // hand over to the real map: the drawing fades as the coast, labels and place pins come in
+  function finish(){
+    if(done) return; done=true; cancelAnimationFrame(raf);
+    map.classList.remove('xp-intro'); ku.remove();
+    if(!played) return;
+    var gone=function(){ cv.remove(); };
+    cv.animate([{opacity:1},{opacity:0}],{duration:300,easing:'ease-out',fill:'forwards'}).finished.then(gone,gone);
+    [].forEach.call(map.querySelectorAll('.xp-label'),function(el){ el.animate([{opacity:0},{opacity:getComputedStyle(el).opacity}],{duration:500,easing:'ease-out'}); });
+    [].forEach.call(map.querySelectorAll('.xp-pin'),function(el,i){ el.animate([{transform:'translate(-50%,-50%) scale(0)'},{transform:'translate(-50%,-50%) scale(1.18)',offset:.6},{transform:'translate(-50%,-50%) scale(1)'}],{duration:460,delay:80+i*70,easing:'cubic-bezier(.23,1,.32,1)',fill:'backwards'}); });
+  }
+
+  // hide the flat map until the globe is ready; if the outlines can't load in time, show the map as it is
+  map.classList.add('xp-intro');
+  var want=false, loading=null;
+  function load(){
+    if(!loading) loading=fetch('assets/world-land.json').then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); }).then(function(j){
+      land=j.rings.map(function(e){ var x=e[0], y=e[1], a=[x/10,y/10]; for(var i=2;i<e.length;i+=2){ x+=e[i]; y+=e[i+1]; a.push(x/10,y/10); } return ring(a,false); });
+      if(want) start();
+    }).catch(finish);
+    return loading;
+  }
+  new IntersectionObserver(function(es,o){ if(es[0].isIntersecting){ o.disconnect(); load(); } },{rootMargin:'800px 0px'}).observe(map);
+  new IntersectionObserver(function(es,o){
+    if(!es[0].isIntersecting) return; o.disconnect(); want=true; load();
+    if(land) start(); else setTimeout(function(){ if(!played) finish(); },1200);
+  },{threshold:.4}).observe(map);
+  // a tap on the map, a pick from the list, or printing skips straight to the finished map
+  map.addEventListener('pointerdown',finish);
+  R.addEventListener('click',function(e){ if(e.target.closest('[data-loc]')) finish(); });
+  window.addEventListener('beforeprint',finish);
 })();
 </script>
 <script>
