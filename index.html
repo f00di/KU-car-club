@@ -1158,7 +1158,7 @@ if(!panel.hasAttribute('hidden')&&!root.contains(e.target))setOpen(false);
   if(!coast||!g||!window.fetch||!window.requestAnimationFrame||!('IntersectionObserver' in window)||!map.animate) return;
   if((window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||(root&&root.getAttribute('data-motion')==='false')) return;
 
-  // The flat map is a plain longitude/latitude grid over these spans (its seven pins sit within 0.3% of their places).
+  // The flat map is a plain longitude/latitude grid over these spans, the same one the events list puts its pins on.
   var LON0=51.565, LONS=5.408, LAT0=26.477, LATS=4.45, KU=[54.3949,24.4474], D=Math.PI/180;
   var C0=[-25,12], CU=[LON0+LONS/2, LAT0-LATS/2];
   // timeline, ms: turn the globe, zoom in, drop the pin, hold, pull back
