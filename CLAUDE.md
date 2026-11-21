@@ -44,7 +44,7 @@ Colours: navy `#14213D`, cream `#F3EBD8` (page background), ivory `#FAF6EC` (pap
 
 Buttons are outline-only with no fill. The header's "Join free" (`.btn-navy`) is navy. "Join the club" (`.btn-cream`, in the hero and the meet section) is gold. The class names no longer describe the fill. On mouse hover, "Join free" scribbles a gold zigzag behind its label.
 
-Type: Barlow Condensed 600/700 for headings and buttons, Barlow 400/500/600 for body, Caveat for handwritten notes, Instrument Serif italic for the accent words in the film heading.
+Type: Barlow Condensed 600/700 for headings and buttons, Barlow 400/500/600 for body, Caveat for handwritten notes, Instrument Serif for the italic accent words in section headings and for the large numbers (film counter, Explore dates, people and meet figures).
 
 Sketch style: outlines of tiles, buttons and icons are hand-drawn SVG paths (doubled, slightly jittered strokes). They draw on at load with `pathLength="1"` and a `stroke-dasharray` animation (`kuDraw`). Paper tiles carry a faint dot grid.
 
@@ -65,7 +65,7 @@ Sketch style: outlines of tiles, buttons and icons are hand-drawn SVG paths (dou
 
 ### Film collection (3D barrel carousel)
 
-- Navy section. Overline "KU Car Club / The film collection", heading "The club, in motion."
+- Navy section with no heading (the owner removed "The club, in motion."). It has the overline "KU Car Club / The film collection" and the line "The places. The people. The nights worth showing up for." `aria-label="The film collection"` names the section for screen readers.
 - Pure CSS 3D. Each card: `rotateY(calc(var(--step) * -i)) translateZ(calc(-1 * var(--R)))`. The drum: `translateZ(var(--R)) rotateY(calc(var(--step) * pos))`.
 - Desktop: `--R: 700px`, `--step: 15.3deg`, cards 186 × 308, perspective 860 px. Phone: 430 px, 17.7 deg, 132 × 222, perspective 540 px.
 - Nine cards. Drag with pointer events, arrow buttons, dots and a counter.
